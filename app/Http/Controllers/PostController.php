@@ -7,36 +7,42 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    // GET /posts  —— 显示所有帖子
+    // English: Display all posts and related comments
+    // 中文：显示所有帖子及其评论
     public function index()
     {
+        // Retrieve all posts with their comments
+        // 获取所有帖子，并预加载评论数据
         $posts = Post::with('comments')->latest()->get();
 
-        return view('posts.index', [
-            'posts' => $posts,
-        ]);
+        return view('posts.index', ['posts' => $posts]);
     }
 
-    // GET /posts/create —— 显示创建表单
+    // English: Display post creation form
+    // 中文：显示创建新帖子的表单
     public function create()
     {
         return view('posts.create');
     }
 
-    // POST /posts —— 处理表单提交
+    // English: Handle post creation form submission
+    // 中文：处理表单提交并保存新帖子
     public function store(Request $request)
     {
-        // 1. 验证表单
+        // Validate form inputs
+        // 验证表单字段
         $validated = $request->validate([
             'title' => 'required|min:3',
             'body' => 'nullable',
             'author' => 'required',
         ]);
 
-        // 2. 存数据库
+        // Create a new post
+        // 创建新帖子
         Post::create($validated);
 
-        // 3. 跳回列表页并给个提示
+        // Redirect to posts page with success message
+        // 重定向到帖子列表并显示成功提示
         return redirect('/posts')->with('success', 'Post created successfully!');
     }
 }

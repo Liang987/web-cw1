@@ -3,18 +3,17 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Database\Seeders\PostSeeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * English: Run all seeders for the application
+     * 中文：运行所有数据库填充器
      */
     public function run(): void
     {
-        // 运行 PostSeeder 来生成测试数据
         $this->call([
-            PostSeeder::class,
+            PostSeeder::class, // 运行 PostSeeder; Run PostSeeder
         ]);
     }
 }
