@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 
+// 帖子资源路由（包含 index, show, create, store, edit, update, destroy）
+Route::resource('posts', PostController::class);
+
+// 给评论单独加一个路由（只需要 store）
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+    ->name('comments.store');
+
 // English: Home route
 // 中文：首页路由
 Route::get('/', function () {

@@ -1,10 +1,9 @@
-{{-- resources/views/posts/create.blade.php --}}
+{{-- resources/views/posts/edit.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>Create Post</h1>
+    <h1>Edit Post</h1>
 
-    {{-- 显示验证错误（Q14） --}}
     @if ($errors->any())
         <div style="color: red;">
             <ul>
@@ -15,19 +14,20 @@
         </div>
     @endif
 
-    <form action="{{ route('posts.store') }}" method="POST">
+    <form action="{{ route('posts.update', $post) }}" method="POST">
         @csrf
+        @method('PUT')
 
         <div>
             <label>Title</label><br>
-            <input type="text" name="title" value="{{ old('title') }}">
+            <input type="text" name="title" value="{{ old('title', $post->title) }}">
         </div>
 
         <div>
             <label>Body</label><br>
-            <textarea name="body" rows="4">{{ old('body') }}</textarea>
+            <textarea name="body" rows="4">{{ old('body', $post->body) }}</textarea>
         </div>
 
-        <button type="submit">Save</button>
+        <button type="submit">Update</button>
     </form>
 @endsection

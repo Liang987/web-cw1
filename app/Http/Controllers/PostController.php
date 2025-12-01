@@ -7,42 +7,71 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    // English: Display all posts and related comments
-    // 中文：显示所有帖子及其评论
+    // GET /posts
     public function index()
     {
-        // Retrieve all posts with their comments
-        // 获取所有帖子，并预加载评论数据
-        $posts = Post::with('comments')->latest()->get();
+        // 先简单点，用 get()，之后再改 paginate()
+        $posts = Post::with('user')->latest()->get();
 
-        return view('posts.index', ['posts' => $posts]);
+        return view('posts.index', compact('posts'));
     }
 
-    // English: Display post creation form
-    // 中文：显示创建新帖子的表单
+    // GET /posts/create
     public function create()
     {
         return view('posts.create');
     }
 
-    // English: Handle post creation form submission
-    // 中文：处理表单提交并保存新帖子
+    // POST /posts
     public function store(Request $request)
     {
-        // Validate form inputs
-        // 验证表单字段
+        // Q14: 数据验证
         $validated = $request->validate([
-            'title' => 'required|min:3',
-            'body' => 'nullable',
-            'author' => 'required',
+            'title' => 'required|string|max:255',
+            'body'  => 'nullable|string',
         ]);
 
-        // Create a new post
-        // 创建新帖子
+        // 暂时先写死一个 user_id（之后换成 auth()->id()）
+        $validated['user_id'] = 1;
+
         Post::create($validated);
 
-        // Redirect to posts page with success message
-        // 重定向到帖子列表并显示成功提示
-        return redirect('/posts')->with('success', 'Post created successfully!');
+        return redirect()->route('posts.index')
+            ->with('success', 'Post created successfully.');
+    }
+
+    // GET /posts/{post}
+    public function show(Post $post)
+    {
+        // 带上作者和评论以及评论的作者
+        $post->load(['user', 'comments.user']);
+
+        return view('posts.show', compact('post'));
+    }
+
+    // GET /posts/{post}/edit
+    public function edit(Post $post)
+    {
+        return view('posts.edit', compact('post'));
+    }
+
+    // PUT /posts/{post}
+    public function update(Request $request, Post $post)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'body'  => 'nullable|string',
+        ]);
+
+        $post->update($validated);
+
+        return redirect()->route('posts.show', $post)
+            ->with('success', 'Post updated successfully.');
+    }
+
+    // 先不实现 destroy，有需要后面再加
+    public function destroy(Post $post)
+    {
+        //
     }
 }
