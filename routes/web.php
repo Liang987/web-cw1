@@ -4,36 +4,35 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
 
-Route::get('/users/{user}', [UserController::class, 'show'])
-    ->name('users.show');
-
-// 帖子资源路由（包含 index, show, create, store, edit, update, destroy）
-Route::resource('posts', PostController::class);
-
-// 给评论单独加一个路由（只需要 store）
-Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
-    ->name('comments.store');
-
-// English: Home route
-// 中文：首页路由
+// 可选：把首页直接跳到 posts 列表
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('posts.index');
 });
 
-// English: Show all posts
-// 中文：显示所有帖子
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+// 注册
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 
-// English: Show create post form
-// 中文：显示创建帖子页面
-Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+// 登录
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
 
-// English: Handle post form submission
-// 中文：处理帖子提交
-Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+// 登出
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// English: Handle new comment submission
-// 中文：处理评论提交
-Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+// ==================== Posts 路由 ====================
 
+// 所有 posts 路由都先注册出来
+Route::resource('posts', PostController::class);
+
+// 评论：只有登录用户可以提交
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+    ->name('comments.store')
+    ->middleware('auth');
+
+
+// 用户页面（公开）
+Route::get('/users/{user}', [UserController::class, 'show'])
+    ->name('users.show');

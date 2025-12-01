@@ -1,31 +1,67 @@
 {{-- resources/views/posts/index.blade.php --}}
-@extends('layouts.app') {{-- 如果你还没有 layout，可以先去掉这一行 --}}
+@extends('layouts.app')
 
 @section('content')
-    <h1>Posts</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Posts</h1>
 
+        {{-- 登录后才能看到创建按钮 --}}
+        @auth
+            <a href="{{ route('posts.create') }}" class="btn btn-primary">
+                Create New Post
+            </a>
+        @else
+            <a href="{{ route('login') }}" class="btn btn-secondary">
+                Login to Create Post
+            </a>
+        @endauth
+    </div>
+
+    {{-- 成功提示 --}}
     @if (session('success'))
-        <div style="color: green;">
+        <div class="alert alert-success">
             {{ session('success') }}
         </div>
     @endif
 
-    <a href="{{ route('posts.create') }}">Create New Post</a>
+    @if ($posts->isEmpty())
+        <div class="alert alert-info">
+            No posts yet.
+        </div>
+    @else
+        <div class="list-group mb-4">
+            @foreach ($posts as $post)
+                <div class="list-group-item list-group-item-action">
 
-    <ul>
-        @foreach ($posts as $post)
-            <li>
-                <h3>
-                    <a href="{{ route('posts.show', $post) }}">
-                        {{ $post->title }}
-                    </a>
-                </h3>
-                <p>
-                    By <a href="{{ route('users.show', $post->user_id) }}">
-                        {{ $post->user->name ?? 'Unknown user' }}
-                    </a>
-                </p>
-            </li>
-        @endforeach
-    </ul>
+                    {{-- 标题，点击进入详情页 --}}
+                    <h5 class="mb-1">
+                        <a href="{{ route('posts.show', $post) }}" class="text-decoration-none">
+                            {{ $post->title }}
+                        </a>
+                    </h5>
+
+                    {{-- 作者 + 时间 --}}
+                    <small class="text-muted d-block mb-1">
+                        By
+                        <a href="{{ route('users.show', $post->user_id) }}">
+                            {{ $post->user->name ?? 'Unknown user' }}
+                        </a>
+                        · {{ $post->created_at->diffForHumans() }}
+                    </small>
+
+                    {{-- 内容摘要 --}}
+                    @if ($post->body)
+                        <p class="mb-0 text-muted">
+                            {{ \Illuminate\Support\Str::limit($post->body, 100) }}
+                        </p>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+
+        {{-- 分页按钮 --}}
+        <div class="d-flex justify-content-center">
+            {{ $posts->links() }}
+        </div>
+    @endif
 @endsection

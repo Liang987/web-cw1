@@ -17,9 +17,10 @@ class CommentController extends Controller
         ]);
 
         $validated['post_id'] = $post->id;
-        $validated['user_id'] = 1; // 暂时固定用户，之后改成 auth()->id()
+        $validated['user_id'] = auth()->id();
 
         Comment::create($validated);
+
 
         return back()->with('success', 'Comment added.');
     }

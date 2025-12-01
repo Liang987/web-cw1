@@ -10,8 +10,7 @@ class PostController extends Controller
     // GET /posts
     public function index()
     {
-        // 先简单点，用 get()，之后再改 paginate()
-        $posts = Post::with('user')->latest()->get();
+        $posts = Post::with('user')->latest()->paginate(5);
 
         return view('posts.index', compact('posts'));
     }
@@ -31,10 +30,9 @@ class PostController extends Controller
             'body'  => 'nullable|string',
         ]);
 
-        // 暂时先写死一个 user_id（之后换成 auth()->id()）
-        $validated['user_id'] = 1;
-
+        $validated['user_id'] = auth()->id();
         Post::create($validated);
+
 
         return redirect()->route('posts.index')
             ->with('success', 'Post created successfully.');
@@ -72,6 +70,10 @@ class PostController extends Controller
     // 先不实现 destroy，有需要后面再加
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+
+        return redirect()->route('posts.index')
+            ->with('success', 'Post deleted successfully.');
     }
+
 }
