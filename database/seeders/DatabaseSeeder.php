@@ -13,7 +13,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            PostSeeder::class, // 运行 PostSeeder; Run PostSeeder
+            UserSeeder::class, // 先创建用户
+            PostSeeder::class, // 再创建帖子和评论
         ]);
     }
+
 }
