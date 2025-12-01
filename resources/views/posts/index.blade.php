@@ -21,7 +21,9 @@
                     </a>
                 </h3>
                 <p>
-                    By {{ $post->user->name ?? 'Unknown user' }}
+                    By <a href="{{ route('users.show', $post->user_id) }}">
+                        {{ $post->user->name ?? 'Unknown user' }}
+                    </a>
                 </p>
             </li>
         @endforeach

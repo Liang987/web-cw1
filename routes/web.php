@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\UserController;
+
+Route::get('/users/{user}', [UserController::class, 'show'])
+    ->name('users.show');
 
 // 帖子资源路由（包含 index, show, create, store, edit, update, destroy）
 Route::resource('posts', PostController::class);
@@ -32,3 +36,4 @@ Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
 // English: Handle new comment submission
 // 中文：处理评论提交
 Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+
