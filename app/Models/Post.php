@@ -5,23 +5,28 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Comment;
+use App\Models\User;
 
 class Post extends Model
 {
     use HasFactory;
 
-    // English: Fields allowed for mass assignment
-    // 中文：允许批量赋值的字段（可通过 create() 一次性写入）
+    // 允许批量赋值的字段
     protected $fillable = [
         'title',
         'body',
-        'author',
+        'user_id',   // ✅ 使用外键而不是 author 字符串
     ];
 
-    // English: One Post has many Comments
-    // 中文：一个帖子可以有多条评论（hasMany）
+    // 一篇帖子有很多评论
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    // 一篇帖子属于一个用户（作者）
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
