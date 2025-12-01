@@ -3,18 +3,23 @@
 namespace Database\Factories;
 
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CommentFactory extends Factory
 {
-    // English: Define default fake data for comments
-    // 中文：定义评论模型的假数据生成逻辑
     public function definition(): array
     {
         return [
-            'post_id' => Post::inRandomOrder()->first()?->id ?? 1, // 随机关联一个帖子 Randomly associate a post
-            'content' => $this->faker->sentence(),                  // 随机评论内容 Random comment content
-            'author' => $this->faker->firstName(),                  // 随机评论人 Random Commenter
+            // 如果外面没指定 post，会自动创建一个 Post
+            'post_id' => Post::inRandomOrder()->first()?->id
+                         ?? Post::factory(),
+
+            'content' => $this->faker->sentence(),
+
+            // 为评论随机指定一个用户（或者自动创建）
+            'user_id' => User::inRandomOrder()->first()?->id
+                         ?? User::factory(),
         ];
     }
 }
