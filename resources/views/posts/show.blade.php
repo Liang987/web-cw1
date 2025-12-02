@@ -5,7 +5,14 @@
     <div class="card mb-4">
         <div class="card-body">
             <h1 class="card-title">{{ $post->title }}</h1>
-            <p class="text-muted">By {{ $post->user->name ?? 'Unknown' }} | {{ $post->created_at->format('M d, Y') }}</p>
+            
+            <p class="text-muted">
+                By 
+                <a href="{{ route('users.show', $post->user) }}" class="text-decoration-none fw-bold text-dark">
+                    {{ $post->user->name ?? 'Unknown' }}
+                </a> 
+                | {{ $post->created_at->format('M d, Y') }}
+            </p>
             
             @if ($post->image_path)
                 <div class="mb-3">
@@ -38,9 +45,14 @@
         @forelse($post->comments as $comment)
             <div class="card mb-2">
                 <div class="card-body py-2">
-                    <strong>{{ $comment->user->name }}</strong>
+                    <strong>
+                        <a href="{{ route('users.show', $comment->user) }}" class="text-decoration-none text-dark">
+                            {{ $comment->user->name }}
+                        </a>
+                    </strong>
+                    
                     <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                    <p class="mb-0">{{ $comment->content }}</p> {{-- 注意：确认这里是 content 还是 body，取决于你数据库字段 --}}
+                    <p class="mb-0">{{ $comment->content }}</p> 
                 </div>
             </div>
         @empty
@@ -87,7 +99,7 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ content: bodyInput.value }) // 确认后端接收的是 content
+            body: JSON.stringify({ content: bodyInput.value }) 
         })
         .then(response => {
             if (!response.ok) throw response;

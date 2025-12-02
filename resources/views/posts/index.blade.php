@@ -43,9 +43,11 @@
                     {{-- 作者 + 时间 --}}
                     <small class="text-muted d-block mb-1">
                         By
-                        <a href="{{ route('users.show', $post->user_id) }}">
-                            {{ $post->user->name ?? 'Unknown user' }}
+                        {{-- 👇👇👇 修改后的代码 👇👇👇 --}}
+                        <a href="{{ route('users.show', $post->user) }}" class="text-decoration-none fw-bold text-dark">
+                            {{ $post->user->name ?? 'Unknown' }}
                         </a>
+                        {{-- 👆👆👆 修改结束 👆👆👆 --}}
                         · {{ $post->created_at->diffForHumans() }}
                     </small>
 
