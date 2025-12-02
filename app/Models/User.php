@@ -4,15 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
@@ -20,24 +22,26 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
-
-    /**
-     * 一位用户有很多帖子
-     */
-    public function posts()
+    protected function casts(): array
     {
-        return $this->hasMany(\App\Models\Post::class);
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 
-    /**
-     * 一位用户有很多评论
-     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
     public function comments()
     {
-        return $this->hasMany(\App\Models\Comment::class);
+        return $this->hasMany(Comment::class);
     }
 }

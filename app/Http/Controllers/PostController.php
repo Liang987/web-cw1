@@ -4,76 +4,82 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; // 必须引用这个
 
 class PostController extends Controller
 {
-    // GET /posts
+    use AuthorizesRequests; // 开启权限验证功能
+
+    // 1. 帖子列表页
     public function index()
     {
-        $posts = Post::with('user')->latest()->paginate(5);
-
+        // 预加载 user，防止 N+1 查询问题 (Rubric: Working with Data)
+        // latest() 保证最新的在前面
+        // paginate(10) 实现分页 (Rubric: Progress 5)
+        $posts = Post::with('user')->latest()->paginate(10);
         return view('posts.index', compact('posts'));
     }
 
-    // GET /posts/create
+    // 2. 显示发帖表单
     public function create()
     {
         return view('posts.create');
     }
 
-    // POST /posts
+    // 3. 保存新帖子
     public function store(Request $request)
     {
-        // Q14: 数据验证
+        // 表单验证 (Rubric: Working with Data 14)
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'body'  => 'nullable|string',
+            'title' => 'required|max:255',
+            'body' => 'required',
         ]);
 
-        $validated['user_id'] = auth()->id();
-        Post::create($validated);
+        // 自动关联当前登录用户 (Rubric: User Presence 9)
+        $request->user()->posts()->create($validated);
 
-
-        return redirect()->route('posts.index')
-            ->with('success', 'Post created successfully.');
+        return redirect()->route('posts.index')->with('success', 'Post created successfully!');
     }
 
-    // GET /posts/{post}
+    // 4. 显示单篇帖子详情
     public function show(Post $post)
     {
-        // 带上作者和评论以及评论的作者
-        $post->load(['user', 'comments.user']);
-
+        // 加载这篇帖子的评论，以及评论的作者
+        $post->load('comments.user');
         return view('posts.show', compact('post'));
     }
 
-    // GET /posts/{post}/edit
+    // 5. 编辑页面
     public function edit(Post $post)
     {
+        // 权限检查：如果不符合 Policy 规则，直接报错 403
+        $this->authorize('update', $post);
         return view('posts.edit', compact('post'));
     }
 
-    // PUT /posts/{post}
+    // 6. 更新逻辑
     public function update(Request $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'body'  => 'nullable|string',
+            'title' => 'required|max:255',
+            'body' => 'required',
         ]);
 
         $post->update($validated);
 
-        return redirect()->route('posts.show', $post)
-            ->with('success', 'Post updated successfully.');
+        return redirect()->route('posts.index')->with('success', 'Post updated!');
     }
 
-    // 先不实现 destroy，有需要后面再加
+    // 7. 删除逻辑
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+        
         $post->delete();
 
-        return redirect()->route('posts.index')
-            ->with('success', 'Post deleted successfully.');
+        return redirect()->route('posts.index')->with('success', 'Post deleted!');
     }
-
 }

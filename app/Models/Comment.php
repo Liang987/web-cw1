@@ -11,21 +11,15 @@ class Comment extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'post_id',
-        'content',
-        'user_id',    // ✅ 使用外键
-    ];
+    protected $fillable = ['body', 'user_id', 'post_id'];
 
-    // 每条评论属于一个帖子
-    public function post()
-    {
-        return $this->belongsTo(Post::class);
-    }
-
-    // 每条评论属于一个用户（评论者）
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function post()
+    {
+        return $this->belongsTo(Post::class);
     }
 }
