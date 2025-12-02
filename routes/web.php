@@ -35,9 +35,14 @@ Route::middleware('auth')->group(function () {
     // 评论
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
         ->name('comments.store');
+
+    // 通知
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAll');
+    Route::get('/notifications/check', [App\Http\Controllers\NotificationController::class, 'check'])->name('notifications.check');
 });
 
-// 🟢 然后再定义通配符路由 (Index/Show)
 // 只有上面的 create 没匹配上，才会走到这里，把剩余的当成 ID 处理
 Route::resource('posts', PostController::class)->only(['index', 'show']);
 
