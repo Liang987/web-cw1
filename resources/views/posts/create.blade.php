@@ -1,33 +1,31 @@
-{{-- resources/views/posts/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-    <h1>Create Post</h1>
+<div class="container">
+    <h1>Create New Post</h1>
+    <div class="card p-4">
+        {{-- 👇 关键点：必须加 enctype="multipart/form-data" --}}
+        <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            
+            <div class="mb-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="title" class="form-control" required>
+            </div>
 
-    {{-- 显示验证错误（Q14） --}}
-    @if ($errors->any())
-        <div style="color: red;">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+            {{-- 👇 新增图片上传框 --}}
+            <div class="mb-3">
+                <label class="form-label">Upload Image (Optional)</label>
+                <input type="file" name="image" class="form-control">
+            </div>
 
-    <form action="{{ route('posts.store') }}" method="POST">
-        @csrf
+            <div class="mb-3">
+                <label class="form-label">Content</label>
+                <textarea name="body" class="form-control" rows="5" required></textarea>
+            </div>
 
-        <div>
-            <label>Title</label><br>
-            <input type="text" name="title" value="{{ old('title') }}">
-        </div>
-
-        <div>
-            <label>Body</label><br>
-            <textarea name="body" rows="4">{{ old('body') }}</textarea>
-        </div>
-
-        <button type="submit">Save</button>
-    </form>
+            <button type="submit" class="btn btn-primary">Submit Post</button>
+        </form>
+    </div>
+</div>
 @endsection
