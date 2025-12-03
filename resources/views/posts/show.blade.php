@@ -22,20 +22,48 @@
                          style="max-height: 400px; object-fit: cover;">
                 </div>
             @endif
-            <div class="card-text mt-4">
+            
+            <div class="card-text mt-4 fs-5">
                 {{ $post->body }}
             </div>
 
-            @can('update', $post)
-                <div class="mt-3">
-                    <a href="{{ route('posts.edit', $post) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?');">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </div>
-            @endcan
+            <hr>
+
+            <div class="d-flex justify-content-between align-items-center">
+                {{-- 帖子点赞按钮 --}}
+                @auth
+                    @php
+                        $likedPost = $post->isLikedBy(auth()->user());
+                    @endphp
+                    <button 
+                        class="btn btn-outline-danger like-btn"
+                        data-id="{{ $post->id }}"
+                        data-type="post"
+                        data-url="{{ route('posts.like', $post) }}">
+                        <span class="heart" data-liked="{{ $likedPost ? '1' : '0' }}">
+                            {{ $likedPost ? '❤️' : '🤍' }}
+                        </span>
+                        Like 
+                        <span class="like-count">{{ $post->likes()->count() }}</span>
+                    </button>
+                @else
+                    <button class="btn btn-outline-secondary" disabled>
+                        🤍 Likes {{ $post->likes()->count() }}
+                    </button>
+                @endauth
+
+                {{-- 编辑/删除按钮 --}}
+                @can('update', $post)
+                    <div>
+                        <a href="{{ route('posts.edit', $post) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <form action="{{ route('posts.destroy', $post) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                @endcan
+            </div>
         </div>
     </div>
 
@@ -45,14 +73,35 @@
         @forelse($post->comments as $comment)
             <div class="card mb-2">
                 <div class="card-body py-2">
-                    <strong>
-                        <a href="{{ route('users.show', $comment->user) }}" class="text-decoration-none text-dark">
-                            {{ $comment->user->name }}
-                        </a>
-                    </strong>
+                    <div class="d-flex justify-content-between">
+                        <strong>
+                            <a href="{{ route('users.show', $comment->user) }}" class="text-decoration-none text-dark">
+                                {{ $comment->user->name }}
+                            </a>
+                        </strong>
+                        <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                    </div>
                     
-                    <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                    <p class="mb-0">{{ $comment->content }}</p> 
+                    <p class="mb-2">{{ $comment->content }}</p>
+
+                    {{-- 评论点赞按钮 --}}
+                    @auth
+                        @php
+                            $likedComment = $comment->isLikedBy(auth()->user());
+                        @endphp
+                        <button 
+                            class="btn btn-sm btn-outline-danger like-btn"
+                            data-id="{{ $comment->id }}"
+                            data-type="comment"
+                            data-url="{{ route('comments.like', $comment) }}">
+                            <span class="heart" data-liked="{{ $likedComment ? '1' : '0' }}">
+                                {{ $likedComment ? '❤️' : '🤍' }}
+                            </span>
+                            <span class="like-count">{{ $comment->likes()->count() }}</span>
+                        </button>
+                    @else
+                        <small class="text-muted">🤍 {{ $comment->likes()->count() }}</small>
+                    @endauth
                 </div>
             </div>
         @empty
@@ -68,24 +117,65 @@
                     @csrf
                     <div class="form-group mb-2">
                         <textarea id="comment-body" name="content" class="form-control" rows="3" required placeholder="Write something..."></textarea>
-                        <span class="text-danger" id="comment-error"></span>
                     </div>
                     <button type="submit" class="btn btn-primary" id="submit-btn">Post Comment</button>
                 </form>
             </div>
         </div>
     @else
-        <p><a href="{{ route('login') }}">Login</a> to comment.</p>
+        <div class="alert alert-info">
+            Please <a href="{{ route('login') }}">login</a> to like or comment.
+        </div>
     @endauth
 </div>
 
+{{-- JavaScript 区域 --}}
 <script>
+    // 点赞功能 JS
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            const countSpan = this.querySelector('.like-count');
+            const heart = this.querySelector('.heart');
+            const btn = this;
+
+            btn.disabled = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 数字更新
+                countSpan.innerText = data.count;
+
+                // 空心 / 实心切换
+                if (data.liked) {
+                    heart.textContent = '❤️';
+                    heart.dataset.liked = '1';
+                } else {
+                    heart.textContent = '🤍';
+                    heart.dataset.liked = '0';
+                }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                btn.disabled = false;
+            });
+        });
+    });
+
+    // 评论提交 JS
     document.getElementById('comment-form')?.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const form = this;
         const bodyInput = document.getElementById('comment-body');
-        const errorSpan = document.getElementById('comment-error');
         const list = document.getElementById('comments-list');
         const noCommentsText = document.getElementById('no-comments-text');
         const submitBtn = document.getElementById('submit-btn');
@@ -107,24 +197,25 @@
         })
         .then(data => {
             bodyInput.value = '';
-            errorSpan.textContent = '';
             if (noCommentsText) noCommentsText.remove();
 
             const newCommentHtml = `
                 <div class="card mb-2" style="background-color: #f0fdf4;">
                     <div class="card-body py-2">
-                        <strong>${data.user_name}</strong>
-                        <small class="text-muted">Just now</small>
-                        <p class="mb-0">${data.content}</p>
+                        <div class="d-flex justify-content-between">
+                            <strong>${data.user_name}</strong>
+                            <small class="text-muted">Just now</small>
+                        </div>
+                        <p class="mb-2">${data.content}</p>
+                        <button class="btn btn-sm btn-outline-danger" disabled>
+                            🤍 0 (Refresh to like)
+                        </button>
                     </div>
                 </div>
             `;
             list.insertAdjacentHTML('beforeend', newCommentHtml);
         })
-        .catch(async error => {
-            console.error(error);
-            alert('Error posting comment');
-        })
+        .catch(error => alert('Error posting comment'))
         .finally(() => {
             submitBtn.disabled = false;
         });
