@@ -12,7 +12,8 @@ class Like extends Model
     protected $fillable = ['user_id'];
 
     /**
-     * 获取拥有此点赞的模型 (Post 或 Comment)
+     * Get the parent likeable model (Post or Comment).
+     * 获取拥有此点赞的模型 (Post 或 Comment)。
      */
     public function likeable()
     {
