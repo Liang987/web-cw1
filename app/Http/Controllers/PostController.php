@@ -6,15 +6,30 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+// 👇 1. 引入 WeatherService
+use App\Services\WeatherService;
 
 class PostController extends Controller
 {
     use AuthorizesRequests;
 
+    protected $weatherService;
+
+    public function __construct(WeatherService $weatherService)
+    {
+        $this->weatherService = $weatherService;
+    }
+
     public function index()
     {
+        // 获取帖子
         $posts = Post::with('user')->latest()->paginate(10);
-        return view('posts.index', compact('posts'));
+
+        // 获取天气数据
+        $weather = $this->weatherService->getCurrentWeather();
+
+        // 传给视图 (compact 加上 'weather')
+        return view('posts.index', compact('posts', 'weather'));
     }
 
     public function create()
@@ -56,6 +71,7 @@ class PostController extends Controller
     {
         $this->authorize('update', $post);
 
+        // 验证和图片更新逻辑
         $validated = $request->validate([
             'title' => 'required|max:255',
             'body' => 'required',

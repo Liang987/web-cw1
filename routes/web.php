@@ -20,30 +20,34 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// ============ 公开路由 ============
-// 帖子列表和详情 (index, show) 不需要登录
-Route::resource('posts', PostController::class)->only(['index', 'show']);
-
-// 用户个人主页
-Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
-
-// ============ 需要登录的路由 ============
+// ============ 把需要登录的路由放到最前面 ============
+// 这样 /posts/create 会先被匹配到，而不会被当成 /posts/{id}
 Route::middleware('auth')->group(function () {
 
     // 1. 帖子管理 (Create, Store, Edit, Update, Destroy)
+    // 这里包含了 /posts/create，必须先定义
     Route::resource('posts', PostController::class)->except(['index', 'show']);
 
     // 2. 评论功能
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
 
-    // 3. 通知系统 (Rubric 12)
+    // 3. 通知系统
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/mark-all', [NotificationController::class, 'markAllRead'])->name('notifications.markAll');
     Route::get('/notifications/check', [NotificationController::class, 'check'])->name('notifications.check');
 
-    // 4. 点赞功能 (多态路由 - Rubric 17)
+    // 4. 点赞功能
     Route::post('/posts/{post}/like', [LikeController::class, 'togglePost'])->name('posts.like');
     Route::post('/comments/{comment}/like', [LikeController::class, 'toggleComment'])->name('comments.like');
 
 });
+
+// ============ 公开路由 ============
+
+// 帖子列表和详情 (index, show)
+// 只有上面的规则都没匹配上 (比如不是 create/edit)，才会走到这里把 URL 当作 ID 处理
+Route::resource('posts', PostController::class)->only(['index', 'show']);
+
+// 用户个人主页
+Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
