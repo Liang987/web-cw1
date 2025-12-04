@@ -11,15 +11,19 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         return [
-            // 如果外面没指定 post，会自动创建一个 Post
-            'post_id' => Post::inRandomOrder()->first()?->id
-                         ?? Post::factory(),
+            // 关联逻辑：优先随机取现有 Post
+            'post_id' => Post::inRandomOrder()->first()?->id ?? Post::factory(),
 
             'content' => $this->faker->sentence(),
 
-            // 为评论随机指定一个用户（或者自动创建）
-            'user_id' => User::inRandomOrder()->first()?->id
-                         ?? User::factory(),
+            // 关联逻辑：优先随机取现有 User
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
+
+            // 🟢 评论时间也随机一下
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'updated_at' => function (array $attributes) {
+                return $attributes['created_at'];
+            },
         ];
     }
 }
