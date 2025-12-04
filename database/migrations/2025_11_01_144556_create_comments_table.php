@@ -11,14 +11,12 @@ return new class extends Migration
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
 
-        // 评论属于某个帖子
         $table->foreignId('post_id')
               ->constrained()
               ->onDelete('cascade');
 
         $table->text('content');
 
-        // 新增：评论的作者
         $table->foreignId('user_id')
               ->constrained()
               ->onDelete('cascade');

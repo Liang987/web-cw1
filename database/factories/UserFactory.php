@@ -13,11 +13,15 @@ class UserFactory extends Factory
 {
     /**
      * The current password being used by the factory.
+     * 当前工厂使用的密码。
      */
     protected static ?string $password;
 
     /**
      * Define the model's default state.
+     * 定义模型的默认状态。
+     *
+     * @return array<string, mixed>
      */
     public function definition(): array
     {
@@ -27,12 +31,13 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'user', // 🟢 默认角色是普通用户
+            'role' => 'user', // Default role is 'user' / 默认角色是普通用户 'user'
         ];
     }
 
     /**
      * Indicate that the model's email address should be unverified.
+     * 指示模型的邮箱地址应为未验证状态。
      */
     public function unverified(): static
     {
@@ -42,8 +47,8 @@ class UserFactory extends Factory
     }
 
     /**
-     * 🟢 新增：快速生成管理员状态
-     * 使用方法: User::factory()->admin()->create();
+     * Indicate that the user should be an administrator.
+     * 快速生成管理员状态。
      */
     public function admin(): static
     {
