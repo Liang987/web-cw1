@@ -5,7 +5,6 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0">Posts</h1>
 
-        {{-- 登录后才能看到创建按钮 --}}
         @auth
             <a href="{{ route('posts.create') }}" class="btn btn-primary">
                 Create New Post
@@ -17,7 +16,6 @@
         @endauth
     </div>
 
-    {{-- 成功提示 --}}
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -33,25 +31,20 @@
             @foreach ($posts as $post)
                 <div class="list-group-item list-group-item-action">
 
-                    {{-- 标题，点击进入详情页 --}}
                     <h5 class="mb-1">
                         <a href="{{ route('posts.show', $post) }}" class="text-decoration-none">
                             {{ $post->title }}
                         </a>
                     </h5>
 
-                    {{-- 作者 + 时间 --}}
                     <small class="text-muted d-block mb-1">
                         By
-                        {{-- 👇👇👇 修改后的代码 👇👇👇 --}}
                         <a href="{{ route('users.show', $post->user) }}" class="text-decoration-none fw-bold text-dark">
                             {{ $post->user->name ?? 'Unknown' }}
                         </a>
-                        {{-- 👆👆👆 修改结束 👆👆👆 --}}
                         · {{ $post->created_at->diffForHumans() }}
                     </small>
 
-                    {{-- 内容摘要 --}}
                     @if ($post->body)
                         <p class="mb-0 text-muted">
                             {{ \Illuminate\Support\Str::limit($post->body, 100) }}
@@ -61,7 +54,6 @@
             @endforeach
         </div>
 
-        {{-- 分页按钮 --}}
         <div class="d-flex justify-content-center">
             {{ $posts->links() }}
         </div>

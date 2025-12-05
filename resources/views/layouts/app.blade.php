@@ -3,55 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>My Blog</title>
-    {{-- CSRF Token for AJAX --}}
+    {{-- CSRF Token for AJAX security / 用于 AJAX 安全的 CSRF 令牌 --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- Bootstrap 5 CSS --}}
+    {{-- Bootstrap 5 CSS Framework / Bootstrap 5 CSS 框架 --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    {{-- 🟢 新增：天气背景样式 --}}
+    {{-- Weather Background Styles / 天气背景样式 --}}
     <style>
-        /* 默认背景 (多云/阴天) */
+        /* Default background (Cloudy/Overcast) / 默认背景 (多云/阴天) */
         body {
             background: linear-gradient(to bottom, #bdc3c7, #2c3e50);
             min-height: 100vh;
-            transition: background 1s ease; /* 让背景切换更丝滑 */
+            transition: background 1s ease; /* Smooth transition effect / 让背景切换更丝滑 */
             color: #333;
         }
 
-        /* ☀️ 晴天样式 (蓝天) */
+        /* ☀️ Sunny/Clear weather style (Blue Sky) / ☀️ 晴天样式 (蓝天) */
         body.weather-Clear {
             background: linear-gradient(to bottom, #2980b9, #6dd5fa, #ffffff);
         }
 
-        /* 🌧️ 雨天样式 (灰暗 + 蓝) */
+        /* 🌧️ Rainy weather style (Dark Grey + Blue) / 🌧️ 雨天样式 (灰暗 + 蓝) */
         body.weather-Rain {
             background: linear-gradient(to bottom, #373b44, #4286f4);
         }
 
-        /* ❄️ 雪天样式 (冰冷白) */
+        /* ❄️ Snowy weather style (Icy White) / ❄️ 雪天样式 (冰冷白) */
         body.weather-Snow {
             background: linear-gradient(to bottom, #83a4d4, #b6fbff);
         }
 
-        /* 🟢 调整：让卡片和导航栏半透明，透出背景色，更漂亮 */
+        /* Semi-transparent containers to show background / 让卡片和导航栏半透明，透出背景色 */
         .card, .list-group-item, .alert {
             background-color: rgba(255, 255, 255, 0.95) !important;
         }
         
         .navbar {
-            background-color: rgba(33, 37, 41, 0.9) !important; /* 深色半透明导航 */
+            background-color: rgba(33, 37, 41, 0.9) !important;
         }
     </style>
 </head>
 
-{{-- 🟢 关键修改：动态 class --}}
-{{-- 如果控制器传来了 $weather，就加上对应的类；否则保持默认 --}}
+{{-- Dynamic Body Class based on Weather / 基于天气的动态 Body 类名 --}}
+{{-- If controller passes $weather, apply corresponding class; otherwise default / 如果控制器传来了 $weather，就加上对应的类；否则保持默认 --}}
 <body class="{{ isset($weather) ? 'weather-' . $weather['type'] : '' }}">
 
     <nav class="navbar navbar-expand-lg navbar-dark mb-4 shadow">
         <div class="container">
-            {{-- 🟢 品牌栏显示天气图标 --}}
+            {{-- Brand with Weather Icon / 显示天气图标的品牌栏 --}}
             <a class="navbar-brand" href="{{ route('posts.index') }}">
                 My Blog
                 @if(isset($weather))
@@ -73,25 +73,26 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <div class="ms-auto d-flex align-items-center">
                     @auth
-                        {{-- 1. 通知链接 (带小红点) --}}
+                        {{-- 1. Notification Link (with Badge) / 通知链接 (带小红点) --}}
                         <a href="{{ route('notifications.index') }}" class="btn btn-outline-light btn-sm me-3 position-relative">
                             Notifications
-                            {{-- 小红点 (加了 id 和 d-none 逻辑，配合下面的 JS 实现实时刷新) --}}
+                            {{-- Red Badge: Controlled by ID and d-none class / 小红点：通过 ID 和 d-none 类控制 --}}
                             <span id="notification-badge" 
                                   class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {{ auth()->user()->unreadNotifications->count() > 0 ? '' : 'd-none' }}">
                                 {{ auth()->user()->unreadNotifications->count() }}
                             </span>
                         </a>
 
-                        {{-- 2. 用户名 (点击去个人主页) --}}
+                        {{-- 2. User Profile Link / 用户个人主页链接 --}}
                         <a href="{{ route('users.show', auth()->user()) }}" class="navbar-text me-3 text-decoration-none text-light">
                             Hello, {{ auth()->user()->name }}
+                            {{-- Admin Badge / 管理员徽章 --}}
                             @if(auth()->user()->isAdmin())
                                 <span class="badge bg-danger ms-1">Admin</span>
                             @endif
                         </a>
 
-                        {{-- 登出 --}}
+                        {{-- Logout Form / 登出表单 --}}
                         <form action="{{ route('logout') }}" method="POST" class="d-inline">
                             @csrf
                             <button type="submit" class="btn btn-outline-light btn-sm">
@@ -99,6 +100,7 @@
                             </button>
                         </form>
                     @else
+                        {{-- Guest Links / 访客链接 --}}
                         <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm me-2">Login</a>
                         <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Register</a>
                     @endauth
@@ -111,30 +113,33 @@
         @yield('content')
     </div>
 
-    {{-- Bootstrap JS --}}
+    {{-- Bootstrap JS Bundle / Bootstrap JS 包 --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    {{-- 🟢 3. 实时轮询脚本 (建议加上，这样通知红点会自动跳出来) --}}
+    {{-- Real-time Notification Polling Script / 实时轮询通知脚本 --}}
     @auth
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const badge = document.getElementById('notification-badge');
-            // 如果页面上找不到 badge (比如没登录)，就不执行
+            
+            // If badge element is missing (e.g. user not logged in), stop / 如果页面上找不到 badge (比如没登录)，就不执行
             if (!badge) return;
 
-            // 每 3 秒去后台问一次：“有新消息吗？”
+            // Poll the server every 3 seconds / 每 3 秒去后台轮询一次
             setInterval(() => {
                 fetch("{{ route('notifications.check') }}")
                     .then(response => response.json())
                     .then(data => {
                         if (data.unread_count > 0) {
+                            // Show badge and update count / 显示红点并更新数量
                             badge.innerText = data.unread_count;
-                            badge.classList.remove('d-none'); // 显示红点
+                            badge.classList.remove('d-none');
                         } else {
-                            badge.classList.add('d-none'); // 隐藏红点
+                            // Hide badge if count is 0 / 如果数量为 0 则隐藏红点
+                            badge.classList.add('d-none');
                         }
                     })
-                    .catch(() => {}); // 忽略网络错误，不大惊小怪
+                    .catch(() => {}); // Ignore network errors silently / 忽略网络错误
             }, 3000); 
         });
     </script>

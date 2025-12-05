@@ -2,10 +2,13 @@
 
 @section('content')
 <div class="container">
+    {{-- Post Card / 帖子卡片 --}}
     <div class="card mb-4">
         <div class="card-body">
+            {{-- Post Title / 帖子标题 --}}
             <h1 class="card-title">{{ $post->title }}</h1>
             
+            {{-- Author and Date Info / 作者和日期信息 --}}
             <p class="text-muted">
                 By 
                 <a href="{{ route('users.show', $post->user) }}" class="text-decoration-none fw-bold text-dark">
@@ -14,6 +17,7 @@
                 | {{ $post->created_at->format('M d, Y') }}
             </p>
             
+            {{-- Display Post Image if exists (Rubric 16) / 如果存在则显示帖子图片 (Rubric 16) --}}
             @if ($post->image_path)
                 <div class="mb-3">
                     <img src="{{ asset('storage/' . $post->image_path) }}" 
@@ -23,6 +27,7 @@
                 </div>
             @endif
             
+            {{-- Post Content / 帖子内容 --}}
             <div class="card-text mt-4 fs-5">
                 {{ $post->body }}
             </div>
@@ -30,9 +35,10 @@
             <hr>
 
             <div class="d-flex justify-content-between align-items-center">
-                {{-- 帖子点赞按钮 --}}
+                {{-- Post Like Button / 帖子点赞按钮 --}}
                 @auth
                     @php
+                        // Check if current user liked the post / 检查当前用户是否点赞了该帖子
                         $likedPost = $post->isLikedBy(auth()->user());
                     @endphp
                     <button 
@@ -40,6 +46,7 @@
                         data-id="{{ $post->id }}"
                         data-type="post"
                         data-url="{{ route('posts.like', $post) }}">
+                        {{-- Dynamic Heart Icon / 动态爱心图标 --}}
                         <span class="heart" data-liked="{{ $likedPost ? '1' : '0' }}">
                             {{ $likedPost ? '❤️' : '🤍' }}
                         </span>
@@ -47,12 +54,13 @@
                         <span class="like-count">{{ $post->likes()->count() }}</span>
                     </button>
                 @else
+                    {{-- Disabled button for guests / 访客的禁用按钮 --}}
                     <button class="btn btn-outline-secondary" disabled>
                         🤍 Likes {{ $post->likes()->count() }}
                     </button>
                 @endauth
 
-                {{-- 编辑/删除按钮 --}}
+                {{-- Edit/Delete Buttons (Authorized Users Only) / 编辑/删除按钮（仅限授权用户） --}}
                 @can('update', $post)
                     <div>
                         <a href="{{ route('posts.edit', $post) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -69,6 +77,7 @@
 
     <h3>Comments</h3>
     
+    {{-- Comments List / 评论列表 --}}
     <div id="comments-list" class="mb-4">
         @forelse($post->comments as $comment)
             <div class="card mb-2">
@@ -84,7 +93,7 @@
                     
                     <p class="mb-2">{{ $comment->content }}</p>
 
-                    {{-- 评论点赞按钮 --}}
+                    {{-- Comment Like Button (Polymorphic) / 评论点赞按钮 (多态) --}}
                     @auth
                         @php
                             $likedComment = $comment->isLikedBy(auth()->user());
@@ -109,6 +118,7 @@
         @endforelse
     </div>
 
+    {{-- Add Comment Form / 添加评论表单 --}}
     @auth
         <div class="card">
             <div class="card-body">
@@ -129,9 +139,9 @@
     @endauth
 </div>
 
-{{-- JavaScript 区域 --}}
+{{-- JavaScript Section / JavaScript 区域 --}}
 <script>
-    // 点赞功能 JS
+    // 1. Like Functionality / 点赞功能 JS
     document.querySelectorAll('.like-btn').forEach(button => {
         button.addEventListener('click', function() {
             const url = this.getAttribute('data-url');
@@ -139,6 +149,7 @@
             const heart = this.querySelector('.heart');
             const btn = this;
 
+            // Disable button to prevent multiple clicks / 禁用按钮防止重复点击
             btn.disabled = true;
 
             fetch(url, {
@@ -151,10 +162,10 @@
             })
             .then(response => response.json())
             .then(data => {
-                // 数字更新
+                // Update like count / 更新点赞数
                 countSpan.innerText = data.count;
 
-                // 空心 / 实心切换
+                // Toggle heart icon (Filled/Empty) / 切换爱心图标（实心/空心）
                 if (data.liked) {
                     heart.textContent = '❤️';
                     heart.dataset.liked = '1';
@@ -165,14 +176,14 @@
             })
             .catch(error => console.error('Error:', error))
             .finally(() => {
-                btn.disabled = false;
+                btn.disabled = false; // Re-enable button / 重新启用按钮
             });
         });
     });
 
-    // 评论提交 JS
+    // 2. Comment Submission via AJAX / 评论提交 JS
     document.getElementById('comment-form')?.addEventListener('submit', function(e) {
-        e.preventDefault();
+        e.preventDefault(); // Prevent page refresh / 阻止页面刷新
         
         const form = this;
         const bodyInput = document.getElementById('comment-body');
@@ -196,9 +207,12 @@
             return response.json();
         })
         .then(data => {
+            // Clear input field / 清空输入框
             bodyInput.value = '';
             if (noCommentsText) noCommentsText.remove();
 
+            // Construct new comment HTML (New comments default to 0 likes)
+            // 构造新评论 HTML (新评论默认为 0 赞)
             const newCommentHtml = `
                 <div class="card mb-2" style="background-color: #f0fdf4;">
                     <div class="card-body py-2">
@@ -213,6 +227,7 @@
                     </div>
                 </div>
             `;
+            // Append new comment to list / 将新评论追加到列表
             list.insertAdjacentHTML('beforeend', newCommentHtml);
         })
         .catch(error => alert('Error posting comment'))

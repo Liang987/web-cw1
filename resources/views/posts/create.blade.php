@@ -4,7 +4,6 @@
 <div class="container">
     <h1>Create New Post</h1>
     <div class="card p-4">
-        {{-- 👇 关键点：必须加 enctype="multipart/form-data" --}}
         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
@@ -13,7 +12,6 @@
                 <input type="text" name="title" class="form-control" required>
             </div>
 
-            {{-- 👇 新增图片上传框 --}}
             <div class="mb-3">
                 <label class="form-label">Upload Image (Optional)</label>
                 <input type="file" name="image" class="form-control">
